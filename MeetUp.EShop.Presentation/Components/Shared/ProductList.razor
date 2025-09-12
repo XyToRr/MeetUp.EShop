@@ -1,0 +1,19 @@
+﻿@inject IStringLocalizer<Resource> localizer
+
+@{
+    if (Products != null && Products.Count > 0)
+    {
+        <div class="row row-cols-2 gy-3">
+            @foreach (var product in Products)
+            {
+                <CascadingValue Value="product" Name="Product">
+                    <ProductComponent IsInCart = "@CurrentUserCart.Contains(product.Id)"/>
+                </CascadingValue>
+            }
+        </div>
+    }
+    else
+    {
+        <p>@localizer["NoProducts"]</p>
+    }
+}

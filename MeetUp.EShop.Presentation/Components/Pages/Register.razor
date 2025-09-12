@@ -1,0 +1,52 @@
+﻿@page "/register"
+@inject IStringLocalizer<Resource> localizer
+
+<PageTitle>Register</PageTitle>
+
+<div class="d-flex justify-content-center">
+    <EditForm class="w-50" Model="User" OnValidSubmit="RegisterUser" FormName="LoginForm">
+        <DataAnnotationsValidator />
+
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["LoginFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.Login" />
+            </label>
+            <ValidationMessage For="() => User.Login" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["PasswordFieldLabel"]
+                <InputText id="password-input" class="form-control mt-1" @bind-Value="User.Password" type="password" />
+            </label>
+            <ValidationMessage For="() => User.Password" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["EmailFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.Email" />
+            </label>
+            <ValidationMessage For="() => User.Email" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["FirstNameFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.FirstName" />
+            </label>
+            <ValidationMessage For="() => User.FirstName" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["LastNameFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.LastName" />
+            </label>
+            <ValidationMessage For="() => User.LastName" />
+        </div>
+        <div class="text-center mt-2">
+            <span>
+                 @localizer["AlreadyHaveAccount"]<a href="/login">@localizer["Login"]</a>
+            </span>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3 btn-form-confirm">@localizer["Register"]</button>
+    </EditForm>
+</div>

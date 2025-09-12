@@ -1,0 +1,53 @@
+﻿@page "/editUser"
+
+@inject IStringLocalizer<Resource> localizer
+
+<div class="d-flex flex-column justify-content-center align-items-center">
+    
+    <EditForm class="w-50" Model="User" OnValidSubmit="UpdateUser" FormName="LoginForm">
+        <DataAnnotationsValidator />
+
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["LoginFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.Login" />
+            </label>
+            <ValidationMessage For="() => User.Login" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["EmailFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.Email" />
+            </label>
+            <ValidationMessage For="() => User.Email" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["FirstNameFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.FirstName" />
+            </label>
+            <ValidationMessage For="() => User.FirstName" />
+        </div>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2">
+                @localizer["LastNameFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value="User.LastName" />
+            </label>
+            <ValidationMessage For="() => User.LastName" />
+        </div>
+        <button type="submit" class="btn btn-primary mt-3 btn-form-confirm">@localizer["UpdateButton"]</button>
+    </EditForm>
+    <span class="text-center mt-2">
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            @(Message + ". ")
+            if (IsUpdateSuccessful)
+            {
+                <a href="/">@localizer["HomeLink"]</a>
+            }
+        }
+
+    </span>
+   
+</div>
+

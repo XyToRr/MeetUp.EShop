@@ -1,0 +1,28 @@
+﻿@inject IStringLocalizer<Resource> localizer
+
+<div class="col">
+
+	<div class="card product-card w-100">
+		<div class="card-body" style="height: 20%">
+			<h5 class="card-title">@Product.Name</h5>
+			<p class="mb-0">@Product.Price $</p>
+		</div>
+		<div class="card-body">
+			@{
+				if (!IsInCart)
+				{
+					<EditForm Model="Product" OnValidSubmit="AddProductToOrder">
+						<button type="submit" class="btn btn-success">@localizer["AddToCart"]</button>
+					</EditForm>
+				}
+				else
+				{
+					<div>
+                        <h3 class="text-success">@localizer["InCart"]</h3>
+					</div>
+				}
+			}
+		</div>
+	</div>
+
+</div>

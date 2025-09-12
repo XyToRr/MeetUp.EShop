@@ -1,0 +1,6 @@
+@MeetUp.EShop_HostAddress = http://localhost:5065
+
+GET {{MeetUp.EShop_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

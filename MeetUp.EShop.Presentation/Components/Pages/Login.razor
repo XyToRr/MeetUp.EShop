@@ -1,0 +1,30 @@
+﻿@page "/login"
+@inject IStringLocalizer<Resource> localizer
+
+<PageTitle>Login</PageTitle>
+<div class="d-flex justify-content-center">
+    <EditForm class="w-50" Model="User" OnValidSubmit="LoginUser" FormName="LoginForm">
+        <DataAnnotationsValidator/>
+        <div class="m-auto w-75">
+            <label class="w-100 mt-2" >
+                @localizer["LoginFieldLabel"]
+                <InputText class="form-control mt-1" @bind-Value = "User.Login"/>
+            </label>
+            <ValidationMessage For="() => User.Login" />
+        </div>
+        <div class="m-auto w-75">
+            <label class ="w-100 mt-2">
+                @localizer["PasswordFieldLabel"]
+                <InputText id="password-input" class="form-control mt-1" @bind-Value="User.Password" type="password" />
+            </label>
+            <ValidationMessage For="() => User.Password" />
+        </div>
+        <div class="text-center mt-2">
+            <span>
+                @localizer["DontHaveAccount"] <a href="/register">@localizer["Register"]</a>
+            </span>
+        </div>
+        
+        <button type="submit" class="btn btn-primary mt-3 btn-form-confirm">@localizer["Login"]</button>
+    </EditForm>
+</div>

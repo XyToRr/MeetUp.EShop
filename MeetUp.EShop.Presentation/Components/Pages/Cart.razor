@@ -1,0 +1,17 @@
+﻿@page "/cart"
+@inject IStringLocalizer<Resource> localizer;
+
+<div class="container">
+    <div class="d-flex flex-column g-3">
+        @foreach (var product in Products)
+        {
+            if (CurrentUserCart.Contains(product.Id))
+            {
+                <CartProduct Product="product" />
+            }
+            
+        }
+        <CartSummary Products="Products.Where(p => CurrentUserCart.Contains(p.Id)).ToList()" />
+        <button class="btn btn-success" @onclick="BuyProducts">@localizer["BuyButton"]</button>
+    </div>
+</div>
