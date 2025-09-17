@@ -76,7 +76,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddDbContext<EShopDbContext>();
+builder.Services.AddDbContext<EShopDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("sql-server"));
+});
 
 var app = builder.Build();
 

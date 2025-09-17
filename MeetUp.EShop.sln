@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetUp.EShop.Presentation",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetUp.EShop.Tests", "MeetUp.EShop.Tests\MeetUp.EShop.Tests.csproj", "{6398B68F-3A96-4CED-B743-1809CFA2FEEE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetUp.EShop.AppHost", "MeetUp.EShop.AppHost\MeetUp.EShop.AppHost.csproj", "{552E69A7-F9AE-4EE9-A8E0-90BFD7C67E85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{552E69A7-F9AE-4EE9-A8E0-90BFD7C67E85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{552E69A7-F9AE-4EE9-A8E0-90BFD7C67E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{552E69A7-F9AE-4EE9-A8E0-90BFD7C67E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{552E69A7-F9AE-4EE9-A8E0-90BFD7C67E85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
