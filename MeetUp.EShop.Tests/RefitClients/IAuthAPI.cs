@@ -2,7 +2,7 @@
 using MeetUp.EShop.Presentation.Models.User;
 using Refit;
 
-namespace MeetUp.EShop.Presentation.Services.Inteerfaces
+namespace MeetUp.EShop.Tests.RefitClients
 {
     public interface IAuthAPI
     {

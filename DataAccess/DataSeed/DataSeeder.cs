@@ -19,9 +19,9 @@ namespace DataAccess.DataSeed
         public static void Seed(EShopDbContext context)
         {
             //SeedClients(context);
-            SeedUsers(context);
-            SeedProducts(context);
-            SeedOrders(context);
+            //SeedUsers(context);
+            //SeedProducts(context);
+            //SeedOrders(context);
         }
 
         private static void SeedUsers(EShopDbContext context)

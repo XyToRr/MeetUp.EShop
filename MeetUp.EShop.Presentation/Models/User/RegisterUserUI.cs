@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace MeetUp.EShop.Presentation.Models.User
 {
-    public class RegisterUser
+    public class RegisterUserUI
     {
         [JsonPropertyName("login")]
         [Required(ErrorMessage = "Login is required")]

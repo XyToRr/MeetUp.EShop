@@ -43,7 +43,14 @@ namespace MeetUp.EShop.Presentation.Components.Pages
             User.Id = await AuthenticationStateProvider.GetCurrentUserId();
             User.Password = string.Empty;
             var json = JsonSerializer.Serialize(User);
-            var res = await UserService.UpdateUser(User);
+            var res = await UserService.UpdateUser(new Core.Models.User.UpdateUser
+            {
+                Id = User.Id,
+                Login = User.Login,
+                FirstName = User.FirstName,
+                LastName = User.LastName,
+                Email = User.Email
+            });
             
             IsUpdateSuccessful = res;
             if (res)

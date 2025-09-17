@@ -60,7 +60,15 @@ namespace MeetUp.EShop.Business.Services
             user.RefreshToken = token.RefreshToken;
             user.RefreshTokenExpire = token.RefreshTokenExpire;
             
-            _userService.Update(user);
+            _userService.Update(new UpdateUser
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Login = user.Login,
+                Password = user.Password
+            });
             return token;
         }
     }

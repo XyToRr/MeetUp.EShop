@@ -27,6 +27,7 @@ namespace MeetUp.EShop.Business.Reposirories
 
         public Guid? GetByName(string name)
         {
+            var users = _context.Users.ToList();
             var user = _context.Users.FirstOrDefault(u => u.Login == name);
             return user?.Id;
         }
@@ -39,15 +40,24 @@ namespace MeetUp.EShop.Business.Reposirories
                 .ToList();
         }
 
-        public async Task<Guid> Register(User user)
+        public async Task<Guid> Register(RegisterUser user)
         {
-            user.Id = Guid.NewGuid();
-            _context.Users.Add(user);
+
+            var newUser = new User
+            {
+                Id = Guid.NewGuid(),
+                LastName = user.LastName,
+                FirstName = user.FirstName,
+                Email = user.Email,
+                Login = user.Login,
+                Password = BCrypt.Net.BCrypt.HashPassword(user.Password)
+            };
+            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
-            return user.Id;
+            return newUser.Id;
         }
 
-        public async Task<bool> Update(User user)
+        public async Task<bool> Update(UpdateUser user)
         {
             var oldUser = _context.Users.FirstOrDefault(u => u.Id == user.Id);
             if (oldUser == null)
@@ -66,6 +76,15 @@ namespace MeetUp.EShop.Business.Reposirories
             return await _context.SaveChangesAsync() > 0;
 
 
+        }
+
+        public async Task<bool> Delete(Guid guid)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == guid);
+            if (user == null)
+                return false;
+            _context.Users.Remove(user);
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> UpdateTokens(User user)

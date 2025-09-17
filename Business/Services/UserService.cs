@@ -10,7 +10,7 @@ namespace MeetUp.EShop.Business.Services
 {
     public class UserService(IUserRepository userRepository, OrderService orderService, ProductService productService)
     {
-        public async Task<Guid> Register(User user)
+        public async Task<Guid> Register(RegisterUser user)
         {
             if (user.Login == string.Empty)
                 return Guid.Empty;
@@ -18,10 +18,12 @@ namespace MeetUp.EShop.Business.Services
             if (user.Password == string.Empty)
                 return Guid.Empty;
 
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+           // user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
             return await userRepository.Register(user);
         }
+
+        public async Task<bool> Delete(Guid id) => await userRepository.Delete(id);
 
         public IEnumerable<User> GetUsers() => userRepository.GetUsers();
 
@@ -29,7 +31,7 @@ namespace MeetUp.EShop.Business.Services
 
         public Guid? GetByName(string name) => userRepository.GetByName(name);
 
-        public async Task<bool> Update(User user) => await userRepository.Update(user);
+        public async Task<bool> Update(UpdateUser user) => await userRepository.Update(user);
         public async Task<bool> UpdateTokens(User user) => await userRepository.UpdateTokens(user);
 
         public Guid GetByRefreshToken(string refreshToken)
@@ -74,7 +76,15 @@ namespace MeetUp.EShop.Business.Services
                 if(user.Orders == null)
                     user.Orders = new List<Order>();
                 user.Orders.Add(lastOrder);
-                await Update(user);
+                await Update(new UpdateUser
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Login = user.Login,
+                    Password = user.Password
+                });
 
             }
 

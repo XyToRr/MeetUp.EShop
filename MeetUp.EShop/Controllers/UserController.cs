@@ -24,7 +24,7 @@ namespace MeetUp.EShop.Api.Controllers
 
         [HttpPost("register")]
 
-        public async Task<IResult> Register(User user)
+        public async Task<IResult> Register(RegisterUser user)
         {
             var result = await _userService.Register(user);
             if (result == Guid.Empty)
@@ -34,6 +34,24 @@ namespace MeetUp.EShop.Api.Controllers
 
             Log.Information("Successfully registered user with ID {UserId}", result);
             return Results.Ok(result);
+        }
+
+        [HttpDelete("delete")]
+        [Authorize]
+        public async Task<IResult> DeleteUser([FromBody] Guid id)
+        {
+            var user = _userService.Get(id);
+            if (user == null)
+            {
+                throw new ControllerException($"not found user with id: {id}", HttpStatusCode.NotFound);
+            }
+            var result = await _userService.Delete(id);
+            if (!result)
+            {
+                throw new ControllerException("bad delete data", HttpStatusCode.BadRequest);
+            }
+            Log.Information("Successfully deleted user with ID {UserId}", id);
+            return Results.Ok();
         }
 
         [HttpGet("getUsers")]
@@ -50,7 +68,7 @@ namespace MeetUp.EShop.Api.Controllers
         }
 
         [HttpGet("getUser")]
-        public IResult GetUser(Guid id)
+        public IResult GetUser([FromBody] Guid id)
         {
             var user = _userService.Get(id);
             if (user == null)
@@ -77,15 +95,24 @@ namespace MeetUp.EShop.Api.Controllers
 
         [HttpPut("update")]
         [Authorize]
-        public async Task<IResult> UpdateUser(User user)
+        public async Task<IResult> UpdateUser([FromBody] UpdateUser user)
         {
-            var result = await _userService.Update(user);
+            var updateUser = new UpdateUser
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Login = user.Login,
+                Password = user.Password
+            };
+            var result = await _userService.Update(updateUser);
             if (!result)
             {
                 throw new ControllerException("bad update data", HttpStatusCode.BadRequest);
             }
             Log.Information("Successfully updated user with ID {UserId}", user.Id);
-            return Results.Ok(user);
+            return Results.Ok(user.Id);
         }
 
 

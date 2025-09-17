@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core\MeetUp.EShop.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Locales\Resource.en-US.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

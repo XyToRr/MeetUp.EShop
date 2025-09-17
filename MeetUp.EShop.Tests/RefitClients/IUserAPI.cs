@@ -1,20 +1,16 @@
 ﻿using MeetUp.EShop.Presentation.Models.Order;
 using MeetUp.EShop.Presentation.Models.User;
 using Refit;
-using MeetUp.EShop.Core.Models.User;
 
-namespace MeetUp.EShop.Presentation.Services.Inteerfaces
+namespace MeetUp.EShop.Tests.RefitClients
 {
     public interface IUserAPI
     {
         [Put("/api/User/update")]
-        Task<ApiResponse<Guid>> UpdateUser([Body] UpdateUser user);
+        Task<ApiResponse<Guid>> UpdateUser(UpdateUserData user);
 
         [Get("/api/User/getUser")]
-        Task<ApiResponse<RegisterUserUI>> GetUser([Body] Guid id);
-
-        [Get("/api/User/getUsers")]
-        Task<ApiResponse<List<RegisterUserUI>>> GetUsers();
+        Task<ApiResponse<RegisterUserUI>> GetUser(Guid id);
 
         [Post("/api/User/addProductToOrder")]
         Task<ApiResponse<bool>> AddProductToOrder(Guid productId, Guid userId);
@@ -24,8 +20,6 @@ namespace MeetUp.EShop.Presentation.Services.Inteerfaces
 
         [Get("/api/User/getLastOrder")]
         Task<ApiResponse<Order>> GetLastOrder(Guid userId);
-
-        [Delete("/api/User/delete")]
-        Task<ApiResponse<object>> DeleteUser([Body] Guid userId);
+        Task<ApiResponse<object>> DeleteUser(Guid userId);
     }
 }

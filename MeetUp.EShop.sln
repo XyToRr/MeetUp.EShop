@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetUp.EShop.DataAccess", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetUp.EShop.Presentation", "MeetUp.EShop.Presentation\MeetUp.EShop.Presentation.csproj", "{06BA992B-C286-4D08-98D4-4306F7E6F6E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetUp.EShop.Tests", "MeetUp.EShop.Tests\MeetUp.EShop.Tests.csproj", "{6398B68F-3A96-4CED-B743-1809CFA2FEEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{06BA992B-C286-4D08-98D4-4306F7E6F6E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06BA992B-C286-4D08-98D4-4306F7E6F6E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06BA992B-C286-4D08-98D4-4306F7E6F6E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6398B68F-3A96-4CED-B743-1809CFA2FEEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

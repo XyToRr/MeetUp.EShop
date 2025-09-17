@@ -1,4 +1,5 @@
-﻿using MeetUp.EShop.Presentation.Models.Product;
+﻿using MeetUp.EShop.Core.Models.User;
+using MeetUp.EShop.Presentation.Models.Product;
 using MeetUp.EShop.Presentation.Models.User;
 using MeetUp.EShop.Presentation.Services.Inteerfaces;
 using Product = MeetUp.EShop.Presentation.Models.Product.Product;
@@ -14,13 +15,13 @@ namespace MeetUp.EShop.Presentation.Services
             _userAPI = userAPI;
         }
 
-        public async Task<bool> UpdateUser(UpdateUserData user)
+        public async Task<bool> UpdateUser(UpdateUser user)
         {
             var response = await _userAPI.UpdateUser(user);
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<RegisterUser> GetUserById(Guid id)
+        public async Task<RegisterUserUI> GetUserById(Guid id)
         {
             var response = await _userAPI.GetUser(id);
             if (response.IsSuccessStatusCode)

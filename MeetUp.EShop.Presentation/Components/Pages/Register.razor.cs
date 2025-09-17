@@ -9,7 +9,7 @@ namespace MeetUp.EShop.Presentation.Components.Pages
     {
         [Inject] private IAuthAPI AuthAPI { get; set; }
         [Inject] private NavigationManager NavigationManager { get; set; }
-        public RegisterUser User { get; set; } = new();
+        public RegisterUserUI User { get; set; } = new();
 
         public async Task RegisterUser()
         {
