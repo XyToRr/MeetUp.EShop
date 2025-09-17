@@ -3,11 +3,16 @@ using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("SqlServer");
-var sql = builder.AddConnectionString("sql-server");
+var sql = builder.AddSqlServer("sql")
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent);
+
+var db = sql.AddDatabase("eshopdb", "MeetUp.EShop.DB");
+
 
 var api = builder.AddProject<Projects.MeetUp_EShop_Api>("eshopapi")
-    .WithReference(sql);
+    .WithReference(db)
+    .WaitFor(db);
 
 var ui = builder.AddProject<Projects.MeetUp_EShop_Presentation>("eshopui")
     .WithReference(api)

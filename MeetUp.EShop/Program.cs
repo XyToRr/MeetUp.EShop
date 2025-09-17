@@ -74,10 +74,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 
-var connection = builder.Configuration.GetConnectionString("sql-server");
+builder.Services.AddServiceDiscovery();
+
+var connectionString = builder.Configuration.GetConnectionString("eshopdb");
 builder.Services.AddDbContext<EShopDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("sql-server"));
+    options.UseSqlServer(connectionString);
 });
 
 var app = builder.Build();
@@ -91,7 +93,7 @@ using (var scope = app.Services.CreateScope())
 #if DEBUG
     DataSeeder.Seed(context);
 #endif
-    context.Database.EnsureCreated();
+   // context.Database.EnsureCreated();
 }
 
 // Configure the HTTP request pipeline.
