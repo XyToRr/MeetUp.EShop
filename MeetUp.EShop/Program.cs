@@ -51,9 +51,6 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-//builder.Services.AddScoped<ClientService>();
-//builder.Services.AddScoped<IClientRepository, ClientRepository>();
-
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ITokenGenerator, AccessTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -76,6 +73,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+
+var connection = builder.Configuration.GetConnectionString("sql-server");
 builder.Services.AddDbContext<EShopDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("sql-server"));

@@ -34,7 +34,7 @@ var refitSettings = new RefitSettings
 {
     ContentSerializer = new NewtonsoftJsonContentSerializer()
 };
-var apiUrl = new Uri("https://eshopapi)");
+var apiUrl = new Uri("https://eshopapi");
 builder.Services.AddRefitClient<IUserAPI>(refitSettings)
     .ConfigureHttpClient(c =>
     {

@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
+  "environmentVariables": {
+    "ConnectionStrings__sql-server": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=EShop;Integrated Security=True;"
+  },
   "profiles": {
     "https": {
       "commandName": "Project",
