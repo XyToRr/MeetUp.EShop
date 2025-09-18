@@ -5,7 +5,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var cache = builder.AddRedis("redis")
     .WithRedisCommander()
-    .WithDataVolume();
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var sql = builder.AddSqlServer("sql")
     .WithDataVolume()
@@ -21,8 +22,6 @@ var api = builder.AddProject<Projects.MeetUp_EShop_Api>("eshopapi")
     .WaitFor(db);
 
 var ui = builder.AddProject<Projects.MeetUp_EShop_Presentation>("eshopui")
-    .WithReference(cache)
-    .WaitFor(cache)
     .WithReference(api)
     .WaitFor(api);
 

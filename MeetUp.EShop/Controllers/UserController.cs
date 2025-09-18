@@ -17,17 +17,19 @@ namespace MeetUp.EShop.Api.Controllers
     {
         private readonly UserService _userService;
         private readonly ProductService _productService;
-        private readonly ICacheService _cacheService;
+        private readonly IHybridCacheService _hybridCacheService;
 
-        public UserController(UserService userService, ProductService productService, ICacheService cache)
+        public UserController(
+            UserService userService, 
+            ProductService productService, 
+            IHybridCacheService hybridCache)
         {
             _userService = userService;
             _productService = productService;
-            _cacheService = cache;
+           _hybridCacheService = hybridCache;
         }
 
         [HttpPost("register")]
-
         public async Task<IResult> Register(RegisterUser user)
         {
             var result = await _userService.Register(user);
@@ -37,8 +39,8 @@ namespace MeetUp.EShop.Api.Controllers
             }
 
             var userData = _userService.Get(result);
-            await _cacheService.SetCacheAsync($"{CacheKeys.SingleUser}+{result}", userData);
-            await _cacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
+            
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
 
             Log.Information("Successfully registered user with ID {UserId}", result);
             return Results.Ok(result);
@@ -59,8 +61,8 @@ namespace MeetUp.EShop.Api.Controllers
                 throw new ControllerException("bad delete data", HttpStatusCode.BadRequest);
             }
 
-            await _cacheService.RemoveCacheAsync($"{CacheKeys.SingleUser}+{id}");
-            await _cacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
+            await _hybridCacheService.RemoveCacheAsync($"{CacheKeys.SingleUser}{id}");
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
 
             Log.Information("Successfully deleted user with ID {UserId}", id);
             return Results.Ok();
@@ -69,41 +71,29 @@ namespace MeetUp.EShop.Api.Controllers
         [HttpGet("getUsers")]
         public async Task<IResult> GetUsers()
         {
-            var usersCache = await _cacheService.GetCacheAsync<List<User>>(CacheKeys.Users);
-            if (usersCache != null)
-            {
-                return Results.Ok(usersCache);
-            }
+            var users = await _hybridCacheService.GetCacheAsync(CacheKeys.Users,
+                async () => await Task.FromResult(_userService.GetUsers()));
 
-            var users = _userService.GetUsers();
             if (users == null || !users.Any())
             {
                 throw new ControllerException("not found users", HttpStatusCode.NotFound);
             }
 
-            await _cacheService.SetCacheAsync(CacheKeys.Users, users.ToList());
-
-            Log.Information("Retrieved {Count} users successfully", users.Count());
             return Results.Ok(users);
+
         }
 
         [HttpGet("getUser")]
         public async Task<IResult> GetUser([FromBody] Guid id)
         {
-            var userCacheKey = $"{CacheKeys.SingleUser}+{id}";
-            var userCache = await _cacheService.GetCacheAsync<User>(userCacheKey);
-            if (userCache != null)
-            {
-                return Results.Ok(userCache);
-            }
-
-            var user = _userService.Get(id);
+          
+            var user = _hybridCacheService.GetCacheAsync($"{CacheKeys.SingleUser}{id}",
+                async () => await Task.FromResult(_userService.Get(id)));
+            
             if (user == null)
             {
                 throw new ControllerException($"not found user with id: {id}", HttpStatusCode.NotFound);
             }
-
-            await _cacheService.SetCacheAsync(userCacheKey, user);
 
             Log.Information("Retrieved user with ID {UserId} successfully", id);
             return Results.Ok(user);
@@ -141,9 +131,8 @@ namespace MeetUp.EShop.Api.Controllers
                 throw new ControllerException("bad update data", HttpStatusCode.BadRequest);
             }
 
-            var userCacheKey = $"{CacheKeys.SingleUser}+{user.Id}";
-            await _cacheService.SetCacheAsync(userCacheKey, _userService.Get(user.Id));
-            await _cacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
+            await _hybridCacheService.SetCacheAsync($"{CacheKeys.SingleUser}{user.Id}", _userService.Get(user.Id));
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
 
             Log.Information("Successfully updated user with ID {UserId}", user.Id);
             return Results.Ok(user.Id);
@@ -166,10 +155,11 @@ namespace MeetUp.EShop.Api.Controllers
             }
 
             await _userService.AddProductToOrder(product, user);
-            var cartCacheKey = $"{CacheKeys.UserCart}_{userId}";
-            
-            await _cacheService.RemoveCacheAsync(cartCacheKey);
-            await _cacheService.RemoveCacheAsync($"{CacheKeys.UserLastOrder}_{userId}");
+
+            await _hybridCacheService.RemoveCacheAsync($"{CacheKeys.UserLastOrder}{userId}");
+            await _hybridCacheService.RemoveCacheAsync($"{CacheKeys.SingleUser}{userId}");
+            await _hybridCacheService.RemoveCacheAsync(CacheKeys.Orders);
+
 
             return Results.Ok();
         }
@@ -184,16 +174,10 @@ namespace MeetUp.EShop.Api.Controllers
                 throw new ControllerException($"not found user with id: {userId}", HttpStatusCode.NotFound);
             }
 
-            var cacheKey = $"{CacheKeys.UserCart}_{userId}";
-            var cartCache = await _cacheService.GetCacheAsync<IEnumerable<Guid>>(cacheKey);
-            if (cartCache != null)
-            {
-                return Results.Ok(cartCache);
-            }
-
             var cart = user.Orders.LastOrDefault(o => o.Status == OrderStatus.New)?.Products.Select(p=>p.Id);
-            
-            await _cacheService.SetCacheAsync(cacheKey, cart?.ToList() ?? new List<Guid>());
+            //var cart = await _hybridCacheService.GetCacheAsync($"{CacheKeys.UserCart}{userId}",
+            //    async () => await Task.FromResult(user.Orders.LastOrDefault(o => o.Status == OrderStatus.New)?.Products.Select(p=>p.Id)));
+         
             return Results.Ok(cart);
         }
 
@@ -201,26 +185,20 @@ namespace MeetUp.EShop.Api.Controllers
         [Authorize]
         public async Task<IResult> GetLastOrder(Guid userId)
         {
-            var cacheKey = $"{CacheKeys.UserLastOrder}_{userId}";
-            var orderCache = await _cacheService.GetCacheAsync<object>(cacheKey);
-            if (orderCache != null)
-            {
-                return Results.Ok(orderCache);
-            }
+            var order = await _hybridCacheService.GetCacheAsync($"{CacheKeys.UserLastOrder}{userId}",
+                async () =>
+                {
+                    var user = _userService.Get(userId);
+                    return await Task.FromResult(user?.Orders.LastOrDefault(o => o.Status == OrderStatus.New));
+                });
 
-            var user = _userService.Get(userId);
-            if (user == null)
-            {
-                throw new ControllerException($"not found user with id: {userId}", HttpStatusCode.NotFound);
-            }
-            var lastOrder = user.Orders.LastOrDefault(o => o.Status == OrderStatus.New);
-            if (lastOrder == null)
+         
+            if (order == null)
             {
                 throw new ControllerException($"not found last order for user with id: {userId}", HttpStatusCode.NotFound);
             }
 
-            await _cacheService.SetCacheAsync(cacheKey, lastOrder);
-            return Results.Ok(lastOrder);
+            return Results.Ok(order);
         }
     }
 }

@@ -78,7 +78,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddServiceDiscovery();
 
 builder.AddRedisDistributedCache("redis");
-builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddHybridCache();
+builder.Services.AddScoped<IHybridCacheService, HybridCacheService>();
 
 var connectionString = builder.Configuration.GetConnectionString("eshopdb");
 builder.Services.AddDbContext<EShopDbContext>(options =>
