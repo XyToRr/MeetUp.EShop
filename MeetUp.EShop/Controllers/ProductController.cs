@@ -1,9 +1,14 @@
 ﻿using System.Net;
+using System.Threading.Tasks;
+using MeetUp.EShop.Api.Cache;
 using MeetUp.EShop.Api.Exceptions;
+using MeetUp.EShop.Business.Cache.Implementation;
+using MeetUp.EShop.Business.Cache.Interfaces;
 using MeetUp.EShop.Business.Services;
 using MeetUp.EShop.Core.Models.Product;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Serilog;
 
 namespace MeetUp.EShop.Api.Controllers
@@ -14,28 +19,46 @@ namespace MeetUp.EShop.Api.Controllers
     public class ProductController : ControllerBase
     {
         private readonly ProductService _productService;
+        private readonly ICacheService _cacheService;
 
-        public ProductController(ProductService productService)
+        public ProductController(ProductService productService, ICacheService cache)
         {
             _productService = productService;
+            _cacheService = cache;
         }
 
         [HttpGet("GetProducts")]
-        public IResult GetProducts()
-        {
+        public async Task<IResult> GetProducts()
+        { 
+            var productsCahce = await _cacheService.GetCacheAsync<List<Product>>(CacheKeys.Products);
+            if (productsCahce != null)
+            {
+                return Results.Ok(productsCahce);
+            }
+            
             var products = _productService.GetProducts();
             if (products == null || !products.Any())
             {
                 throw new ControllerException("Not found products", HttpStatusCode.NotFound);
             }
 
+            await _cacheService.SetCacheAsync(CacheKeys.Products, products.ToList());
+            
             Log.Information("Retrieved {Count} products successfully", products.Count());
             return Results.Ok(products);
         }
 
         [HttpGet("Get")]
-        public IResult Get(Guid id)
+        public async Task<IResult> Get(Guid id)
         {
+            var productCacheKey = $"{CacheKeys.SingleProduct}_{id}";
+
+            var productCache = await _cacheService.GetCacheAsync<Product>(productCacheKey);
+            if (productCache != null)
+            {
+                return Results.Ok(productCache);
+            }
+
             var product = _productService.GetProduct(id);
             if (product == null)
             {
@@ -43,6 +66,7 @@ namespace MeetUp.EShop.Api.Controllers
             }
 
             Log.Information("Retrieved product with ID {ProductId} successfully", id);
+            await _cacheService.SetCacheAsync(productCacheKey, product);
             return Results.Ok(product);
         }
 
@@ -54,6 +78,10 @@ namespace MeetUp.EShop.Api.Controllers
             {
                 throw new ControllerException("Bad addProduct request", HttpStatusCode.BadRequest);
             }
+
+            var productCacheKey = $"{CacheKeys.SingleProduct}_{id}";
+            await _cacheService.SetCacheAsync(productCacheKey, _productService.GetProduct((Guid)id));
+            await _cacheService.SetCacheAsync(CacheKeys.Products, _productService.GetProducts().ToList());
 
             Log.Information("Added product with ID {ProductId} successfully", id);
             return Results.Ok(id);
@@ -68,6 +96,11 @@ namespace MeetUp.EShop.Api.Controllers
                 throw new ControllerException("Bad updateProduct request", HttpStatusCode.BadRequest);
             }
 
+            var productCacheKey = $"{CacheKeys.SingleProduct}_{product.Id}";
+            var updatedProduct = _productService.GetProduct(product.Id);
+            await _cacheService.SetCacheAsync(productCacheKey, updatedProduct);
+            await _cacheService.SetCacheAsync(CacheKeys.Products, _productService.GetProducts().ToList());
+
             Log.Information("Updated product with ID {ProductId} successfully", product.Id);
             return Results.Ok();
         }
@@ -80,6 +113,10 @@ namespace MeetUp.EShop.Api.Controllers
             {
                 throw new ControllerException("Bad deleteProduct request", HttpStatusCode.BadRequest);
             }
+            
+            var productCacheKey = $"{CacheKeys.SingleProduct}_{id}";
+            await _cacheService.RemoveCacheAsync(productCacheKey);
+            await _cacheService.SetCacheAsync(CacheKeys.Products, _productService.GetProducts().ToList());
 
             Log.Information("Deleted product with ID {ProductId} successfully", id);
             return Results.Ok();
