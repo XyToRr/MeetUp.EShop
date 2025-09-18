@@ -32,26 +32,26 @@ namespace DataAccess.Context
                     .AddJsonFile("MeetUp.EShop/appsettings.json", optional: false, reloadOnChange: true) // Вказуємо відносний шлях до файлу
                     .Build();
         }
-        public EShopDbContext(DbContextOptions<EShopDbContext> options, IConfiguration configuration) : base(options)
-        {
-            _configuration = configuration;
-        }
+        //public EShopDbContext(DbContextOptions<EShopDbContext> options, IConfiguration configuration) : base(options)
+        //{
+        //    _configuration = configuration;
+        //}
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            switch (_configuration.GetValue<DataBaseType>("DbType"))
-            {
-                case DataBaseType.InMemory:
-                    optionsBuilder.UseInMemoryDatabase("EShopDb");
-                    break;
-                case DataBaseType.SqlServer:
-                    optionsBuilder.UseSqlServer(_configuration.GetConnectionString("SQLServer"));
-                    break;
-                default:
-                    optionsBuilder.UseInMemoryDatabase("EShopDb");
-                    break;
-            }
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    switch (_configuration.GetValue<DataBaseType>("DbType"))
+        //    {
+        //        case DataBaseType.InMemory:
+        //            optionsBuilder.UseInMemoryDatabase("EShopDb");
+        //            break;
+        //        case DataBaseType.SqlServer:
+        //            optionsBuilder.UseSqlServer(_configuration.GetConnectionString("SQLServer"));
+        //            break;
+        //        default:
+        //            optionsBuilder.UseInMemoryDatabase("EShopDb");
+        //            break;
+        //    }
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

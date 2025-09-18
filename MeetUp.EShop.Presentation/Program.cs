@@ -6,6 +6,7 @@ using MeetUp.EShop.Presentation.Services.Authorization;
 using MeetUp.EShop.Presentation.Services.Inteerfaces;
 using MeetUp.EShop.Presentation.Services.Product;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,38 +27,44 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<UserService>();
 
 builder.Services.AddCircuitServicesAccesor();
+builder.Services.AddServiceDiscovery();
 
 
 var refitSettings = new RefitSettings
 {
     ContentSerializer = new NewtonsoftJsonContentSerializer()
 };
+var apiUrl = new Uri("https://eshopapi");
 builder.Services.AddRefitClient<IUserAPI>(refitSettings)
     .ConfigureHttpClient(c =>
     {
-        c.BaseAddress = new Uri(builder.Configuration["ApiURL"]);
+        c.BaseAddress = apiUrl;
     })
+    .AddServiceDiscovery()
     .AddHttpMessageHandler<TokenHandler>();
 builder.Services.AddRefitClient<IProductAPI>(refitSettings)
     .ConfigureHttpClient(c =>
     {
-        c.BaseAddress = new Uri(builder.Configuration["ApiURL"]);
+        c.BaseAddress = apiUrl;
     })
+    .AddServiceDiscovery()
     .AddHttpMessageHandler<TokenHandler>();
 
 builder.Services.AddRefitClient<IOrderAPI>(refitSettings)
     .ConfigureHttpClient(c =>
     {
-        c.BaseAddress = new Uri(builder.Configuration["ApiURL"]);
+        c.BaseAddress = apiUrl;
     })
+    .AddServiceDiscovery()
     .AddHttpMessageHandler<TokenHandler>()
     .AddHttpMessageHandler(() => new LoggingHandler());
 
 builder.Services.AddRefitClient<IAuthAPI>(refitSettings)
     .ConfigureHttpClient(c =>
     {
-        c.BaseAddress = new Uri(builder.Configuration["ApiURL"]);
-    });
+        c.BaseAddress = apiUrl;
+    })
+    .AddServiceDiscovery();
 
 var app = builder.Build();
 

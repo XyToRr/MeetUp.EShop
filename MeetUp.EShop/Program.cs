@@ -51,9 +51,6 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-//builder.Services.AddScoped<ClientService>();
-//builder.Services.AddScoped<IClientRepository, ClientRepository>();
-
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ITokenGenerator, AccessTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -76,7 +73,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddDbContext<EShopDbContext>();
+
+builder.Services.AddServiceDiscovery();
+
+var connectionString = builder.Configuration.GetConnectionString("eshopdb");
+builder.Services.AddDbContext<EShopDbContext>(options =>
+{
+    options.UseSqlServer(connectionString);
+});
 
 var app = builder.Build();
 
@@ -89,7 +93,7 @@ using (var scope = app.Services.CreateScope())
 #if DEBUG
     DataSeeder.Seed(context);
 #endif
-    context.Database.EnsureCreated();
+   // context.Database.EnsureCreated();
 }
 
 // Configure the HTTP request pipeline.

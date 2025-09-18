@@ -30,7 +30,7 @@ namespace DataAccess.Context
                     break;
             }
 
-            return new EShopDbContext(optionsBuilder.Options, configuration);
+            return new EShopDbContext(optionsBuilder.Options);
         }
     }
 }
