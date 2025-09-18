@@ -4,5 +4,10 @@
     {
         public static string Products => "products_cache_key";
         public static string SingleProduct => "product_cache_key_";
+
+        public static string Users => "users_cache_key";
+        public static string SingleUser => "user_cache_key_";
+        public static string UserCart => "user_cart_cache_key_";
+        public static string UserLastOrder => "user_last_order_cache_key_";
     }
 }
