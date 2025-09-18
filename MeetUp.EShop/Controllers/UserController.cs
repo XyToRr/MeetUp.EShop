@@ -166,6 +166,11 @@ namespace MeetUp.EShop.Api.Controllers
             }
 
             await _userService.AddProductToOrder(product, user);
+            var cartCacheKey = $"{CacheKeys.UserCart}_{userId}";
+            
+            await _cacheService.RemoveCacheAsync(cartCacheKey);
+            await _cacheService.RemoveCacheAsync($"{CacheKeys.UserLastOrder}_{userId}");
+
             return Results.Ok();
         }
 
