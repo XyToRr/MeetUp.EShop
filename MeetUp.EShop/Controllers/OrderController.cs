@@ -1,5 +1,8 @@
 ﻿using System.Net;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using MeetUp.EShop.Api.Cache;
 using MeetUp.EShop.Api.Exceptions;
+using MeetUp.EShop.Business.Cache.Interfaces;
 using MeetUp.EShop.Business.Services;
 using MeetUp.EShop.Core.Models.Order;
 using Microsoft.AspNetCore.Authorization;
@@ -14,29 +17,30 @@ namespace MeetUp.EShop.Api.Controllers
     public class OrderController : ControllerBase
     {
         private readonly OrderService _orderService;
+        private readonly IHybridCacheService _hybridCacheService;
 
-        public OrderController(OrderService orderService)
+        public OrderController(OrderService orderService, IHybridCacheService cache)
         {
             _orderService = orderService;
+            _hybridCacheService = cache;
         }
 
         [HttpGet("getOrders")]
-        public IResult GetOrders()
+        public async Task<IResult> GetOrders()
         {
-            var orders = _orderService.GetOrders();
-            if (orders == null)
-            {
-                throw new ControllerException("Not found orders", HttpStatusCode.NotFound);
-            }
+            var orders = await _hybridCacheService.GetCacheAsync(CacheKeys.Orders,
+                async () => await Task.FromResult(_orderService.GetOrders()));
 
             Log.Information("Retrieved {Count} orders successfully", orders.Count());
             return Results.Ok(orders);
         }
 
         [HttpGet("getOrder")]
-        public IResult GetOrder(Guid id)
+        public async Task<IResult> GetOrder(Guid id)
         {
-            var order = _orderService.Get(id);
+            var order = await _hybridCacheService.GetCacheAsync($"{CacheKeys.SingleOrder}{id}",
+                async () => await Task.FromResult(_orderService.Get(id)));
+            
             if (order == null)
             {
                 throw new ControllerException($"Not found order with id: {id}", HttpStatusCode.NotFound);
@@ -55,6 +59,10 @@ namespace MeetUp.EShop.Api.Controllers
                 throw new ControllerException("Bad addOrder request", HttpStatusCode.BadRequest);
             }
 
+            var cacheKey = $"{CacheKeys.SingleOrder}{result}";
+            await _hybridCacheService.SetCacheAsync(cacheKey, order);
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Orders, _orderService.GetOrders().ToList());
+
             Log.Information("Added order with ID {OrderId} successfully", result);
             return Results.Ok(result);
         }
@@ -68,6 +76,10 @@ namespace MeetUp.EShop.Api.Controllers
                 throw new ControllerException("Bad updateOrder request", HttpStatusCode.BadRequest);
             }
 
+            var cacheKey = $"{CacheKeys.SingleOrder}{order.Id}";
+            await _hybridCacheService.SetCacheAsync(cacheKey, order);
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Orders, _orderService.GetOrders().ToList());
+
             Log.Information("Updated order with ID {OrderId} successfully", order.Id);
             return Results.Ok();
         }
@@ -80,6 +92,10 @@ namespace MeetUp.EShop.Api.Controllers
             {
                 throw new ControllerException("Bad deleteOrder request", HttpStatusCode.BadRequest);
             }
+
+            var cacheKey = $"{CacheKeys.SingleOrder}{id}";
+            await _hybridCacheService.RemoveCacheAsync(cacheKey);
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Orders, _orderService.GetOrders().ToList());
 
             Log.Information("Deleted order with ID {OrderId} successfully", id);
             return Results.Ok();

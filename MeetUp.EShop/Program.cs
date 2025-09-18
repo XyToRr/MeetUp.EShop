@@ -1,7 +1,6 @@
 using MeetUp.EShop.Business.Reposirories;
 using MeetUp.EShop.Business.Services;
 using MeetUp.EShop.Core.Interfaces;
-using Moq;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +15,8 @@ using Serilog.Sinks.File;
 using DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.DataSeed;
+using MeetUp.EShop.Business.Cache.Interfaces;
+using MeetUp.EShop.Business.Cache.Implementation;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File("Logs/log-.log",
@@ -75,6 +76,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 
 builder.Services.AddServiceDiscovery();
+
+builder.AddRedisDistributedCache("redis");
+builder.Services.AddHybridCache();
+builder.Services.AddScoped<IHybridCacheService, HybridCacheService>();
 
 var connectionString = builder.Configuration.GetConnectionString("eshopdb");
 builder.Services.AddDbContext<EShopDbContext>(options =>

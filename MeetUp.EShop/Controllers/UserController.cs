@@ -1,5 +1,7 @@
 ﻿using System.Net;
+using MeetUp.EShop.Api.Cache;
 using MeetUp.EShop.Api.Exceptions;
+using MeetUp.EShop.Business.Cache.Interfaces;
 using MeetUp.EShop.Business.Services;
 using MeetUp.EShop.Core.Enums;
 using MeetUp.EShop.Core.Models.User;
@@ -15,15 +17,19 @@ namespace MeetUp.EShop.Api.Controllers
     {
         private readonly UserService _userService;
         private readonly ProductService _productService;
+        private readonly IHybridCacheService _hybridCacheService;
 
-        public UserController(UserService userService, ProductService productService)
+        public UserController(
+            UserService userService, 
+            ProductService productService, 
+            IHybridCacheService hybridCache)
         {
             _userService = userService;
             _productService = productService;
+           _hybridCacheService = hybridCache;
         }
 
         [HttpPost("register")]
-
         public async Task<IResult> Register(RegisterUser user)
         {
             var result = await _userService.Register(user);
@@ -31,6 +37,10 @@ namespace MeetUp.EShop.Api.Controllers
             {
                 throw new ControllerException("bad register data", HttpStatusCode.BadRequest);
             }
+
+            var userData = _userService.Get(result);
+            
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
 
             Log.Information("Successfully registered user with ID {UserId}", result);
             return Results.Ok(result);
@@ -50,27 +60,36 @@ namespace MeetUp.EShop.Api.Controllers
             {
                 throw new ControllerException("bad delete data", HttpStatusCode.BadRequest);
             }
+
+            await _hybridCacheService.RemoveCacheAsync($"{CacheKeys.SingleUser}{id}");
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
+
             Log.Information("Successfully deleted user with ID {UserId}", id);
             return Results.Ok();
         }
 
         [HttpGet("getUsers")]
-        public IResult GetUsers()
+        public async Task<IResult> GetUsers()
         {
-            var users = _userService.GetUsers();
+            var users = await _hybridCacheService.GetCacheAsync(CacheKeys.Users,
+                async () => await Task.FromResult(_userService.GetUsers()));
+
             if (users == null || !users.Any())
             {
                 throw new ControllerException("not found users", HttpStatusCode.NotFound);
             }
 
-            Log.Information("Retrieved {Count} users successfully", users.Count());
             return Results.Ok(users);
+
         }
 
         [HttpGet("getUser")]
-        public IResult GetUser([FromBody] Guid id)
+        public async Task<IResult> GetUser([FromBody] Guid id)
         {
-            var user = _userService.Get(id);
+          
+            var user = _hybridCacheService.GetCacheAsync($"{CacheKeys.SingleUser}{id}",
+                async () => await Task.FromResult(_userService.Get(id)));
+            
             if (user == null)
             {
                 throw new ControllerException($"not found user with id: {id}", HttpStatusCode.NotFound);
@@ -111,6 +130,10 @@ namespace MeetUp.EShop.Api.Controllers
             {
                 throw new ControllerException("bad update data", HttpStatusCode.BadRequest);
             }
+
+            await _hybridCacheService.SetCacheAsync($"{CacheKeys.SingleUser}{user.Id}", _userService.Get(user.Id));
+            await _hybridCacheService.SetCacheAsync(CacheKeys.Users, _userService.GetUsers().ToList());
+
             Log.Information("Successfully updated user with ID {UserId}", user.Id);
             return Results.Ok(user.Id);
         }
@@ -132,19 +155,29 @@ namespace MeetUp.EShop.Api.Controllers
             }
 
             await _userService.AddProductToOrder(product, user);
+
+            await _hybridCacheService.RemoveCacheAsync($"{CacheKeys.UserLastOrder}{userId}");
+            await _hybridCacheService.RemoveCacheAsync($"{CacheKeys.SingleUser}{userId}");
+            await _hybridCacheService.RemoveCacheAsync(CacheKeys.Orders);
+
+
             return Results.Ok();
         }
 
         [HttpGet("getCart")]
         [Authorize]
         public async Task<IResult> GetCart(Guid userId)
-        {
+        { 
             var user = _userService.Get(userId);
             if (user == null)
             {
                 throw new ControllerException($"not found user with id: {userId}", HttpStatusCode.NotFound);
             }
+
             var cart = user.Orders.LastOrDefault(o => o.Status == OrderStatus.New)?.Products.Select(p=>p.Id);
+            //var cart = await _hybridCacheService.GetCacheAsync($"{CacheKeys.UserCart}{userId}",
+            //    async () => await Task.FromResult(user.Orders.LastOrDefault(o => o.Status == OrderStatus.New)?.Products.Select(p=>p.Id)));
+         
             return Results.Ok(cart);
         }
 
@@ -152,17 +185,20 @@ namespace MeetUp.EShop.Api.Controllers
         [Authorize]
         public async Task<IResult> GetLastOrder(Guid userId)
         {
-            var user = _userService.Get(userId);
-            if (user == null)
-            {
-                throw new ControllerException($"not found user with id: {userId}", HttpStatusCode.NotFound);
-            }
-            var lastOrder = user.Orders.LastOrDefault(o => o.Status == OrderStatus.New);
-            if (lastOrder == null)
+            var order = await _hybridCacheService.GetCacheAsync($"{CacheKeys.UserLastOrder}{userId}",
+                async () =>
+                {
+                    var user = _userService.Get(userId);
+                    return await Task.FromResult(user?.Orders.LastOrDefault(o => o.Status == OrderStatus.New));
+                });
+
+         
+            if (order == null)
             {
                 throw new ControllerException($"not found last order for user with id: {userId}", HttpStatusCode.NotFound);
             }
-            return Results.Ok(lastOrder);
+
+            return Results.Ok(order);
         }
     }
 }
