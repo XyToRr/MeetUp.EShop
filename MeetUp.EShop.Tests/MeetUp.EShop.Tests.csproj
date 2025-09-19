@@ -33,12 +33,14 @@
     <ProjectReference Include="..\Business\MeetUp.EShop.Business.csproj" />
     <ProjectReference Include="..\DataAccess\MeetUp.EShop.DataAccess.csproj" />
     <ProjectReference Include="..\MeetUp.EShop.Presentation\MeetUp.EShop.Presentation.csproj" />
+    <ProjectReference Include="..\MeetUp.EShop\MeetUp.EShop.Api.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="appsettings.test.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="appsettings.test.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 
 </Project>

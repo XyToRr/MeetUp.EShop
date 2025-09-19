@@ -18,104 +18,108 @@ using DataAccess.DataSeed;
 using MeetUp.EShop.Business.Cache.Interfaces;
 using MeetUp.EShop.Business.Cache.Implementation;
 
-Log.Logger = new LoggerConfiguration()
+public class Program {
+    private static void Main(string[] args)
+    {
+        Log.Logger = new LoggerConfiguration()
     .WriteTo.File("Logs/log-.log",
     rollingInterval: RollingInterval.Day,
     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss zzz} [{Level:u3}] {Message:lj}{NewLine}")
     .CreateLogger();
 
-var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+        // Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter ONLY token."
-    });
-    options.OperationFilter<AuthorizeCheckOperationFilter>();
-});
-
-builder.Services.AddScoped<ProductService>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
-builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ITokenGenerator, AccessTokenGenerator>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Token"]);
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+        builder.Services.AddControllers();
+        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        builder.Services.AddEndpointsApiExplorer();
+        //builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            RequireExpirationTime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter ONLY token."
+            });
+            options.OperationFilter<AuthorizeCheckOperationFilter>();
+        });
+
+        builder.Services.AddScoped<ProductService>();
+        builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+        builder.Services.AddScoped<OrderService>();
+        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+        builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<ITokenGenerator, AccessTokenGenerator>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
-builder.Services.AddServiceDiscovery();
+        var key = Encoding.ASCII.GetBytes(builder.Configuration["Token"]);
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
 
-builder.AddRedisDistributedCache("redis");
-builder.Services.AddHybridCache();
-builder.Services.AddScoped<IHybridCacheService, HybridCacheService>();
 
-var connectionString = builder.Configuration.GetConnectionString("eshopdb");
-builder.Services.AddDbContext<EShopDbContext>(options =>
-{
-    options.UseSqlServer(connectionString);
-});
+        builder.Services.AddServiceDiscovery();
 
-var app = builder.Build();
+        builder.AddRedisDistributedCache("redis");
+        builder.Services.AddHybridCache();
+        builder.Services.AddScoped<IHybridCacheService, HybridCacheService>();
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<EShopDbContext>();
-    if(context.Database.IsRelational())
-        context.Database.Migrate();
+        var connectionString = builder.Configuration.GetConnectionString("eshopdb");
+        builder.Services.AddDbContext<EShopDbContext>(options =>
+        {
+            options.UseSqlServer(connectionString);
+        });
+
+        var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<EShopDbContext>();
+            if (context.Database.IsRelational() && !app.Environment.IsEnvironment("Test"))
+                context.Database.Migrate();
 
 #if DEBUG
-    DataSeeder.Seed(context);
+            DataSeeder.Seed(context);
 #endif
-   // context.Database.EnsureCreated();
+            // context.Database.EnsureCreated();
+        }
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
+        }
+
+        app.UseHttpsRedirection();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseMiddleware<ExceptionCatcher>();
+        app.MapControllers();
+
+        app.Run();
+        Log.CloseAndFlush();
+    }
 }
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-}
-
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseMiddleware<ExceptionCatcher>();
-app.MapControllers();
-
-app.Run();
-Log.CloseAndFlush();
-
 

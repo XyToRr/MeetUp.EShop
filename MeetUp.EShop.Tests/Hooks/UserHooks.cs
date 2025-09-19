@@ -34,6 +34,16 @@ namespace MeetUp.EShop.Tests.Hooks
 
         }
 
+        [BeforeScenario("@emptyDB")]
+        public async Task BeforeScenario()
+        {
+            var users = _userRepository.GetUsers();
+            foreach (var user in users)
+            {
+                await _userRepository.Delete(user.Id);
+            }
+        }
+
         [AfterScenario("@apiChangingDB")]
         public async Task AfterScenario()
         {

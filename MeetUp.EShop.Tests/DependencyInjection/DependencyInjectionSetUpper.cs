@@ -6,10 +6,6 @@ using Refit;
 using Reqnroll.Microsoft.Extensions.DependencyInjection;
 using MeetUp.EShop.Tests.TestApiContext;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MeetUp.EShop.Presentation.CircuitServicesAccesor;
 using MeetUp.EShop.Core.Interfaces;
 using MeetUp.EShop.Business.Reposirories;
@@ -17,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using MeetUp.EShop.Tests.RequestHandlers;
 using MeetUp.EShop.Tests.AuthContext.Interfaces;
 using MeetUp.EShop.Tests.AuthContext.Implementations;
+using Microsoft.EntityFrameworkCore;
+using MeetUp.EShop.Tests.ApiFactory;
 
 namespace MeetUp.EShop.Tests.DependencyInjection
 {
@@ -27,17 +25,18 @@ namespace MeetUp.EShop.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
 
-
             var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppContext.BaseDirectory) // або Directory.GetCurrentDirectory()
+                    .SetBasePath(AppContext.BaseDirectory)
                     .AddJsonFile("appsettings.test.json", optional: true, reloadOnChange: true)
                     .Build();
 
-            // Реєстрація IConfiguration
             services.AddSingleton<IConfiguration>(configuration);
 
-
-            services.AddDbContext<EShopDbContext>();
+            services.AddDbContext<EShopDbContext>(options =>
+            {
+                var connectionString = configuration.GetConnectionString("SQLServer");
+                options.UseSqlServer(connectionString);
+            });
 
             services.AddScoped<IUserRepository, UserRepository>();
 
@@ -48,20 +47,28 @@ namespace MeetUp.EShop.Tests.DependencyInjection
             {
                 ContentSerializer = new NewtonsoftJsonContentSerializer()
             };
+
+            // Запускаємо тестовий API через WebApplicationFactory
+            var factory = new ApiFactory.ApiFactory();
+
+            // ------------------------------
+            // Підключаємо Refit через TestServer
+            // ------------------------------
             services.AddRefitClient<IUserAPI>(refitSettings)
                 .ConfigureHttpClient(c =>
                 {
-                    c.BaseAddress = new Uri("https://localhost:7025");
+                    // будь-яка формальна адреса
+                    c.BaseAddress = new Uri("http://localhost");
                 })
-                .AddHttpMessageHandler<TestAuthHandler>()
-                ;
-            
-            
+                .ConfigurePrimaryHttpMessageHandler(() => factory.Server.CreateHandler())
+                .AddHttpMessageHandler<TestAuthHandler>();
+
             services.AddRefitClient<IAuthAPI>(refitSettings)
-            .ConfigureHttpClient(c =>
-            {
-                c.BaseAddress = new Uri("https://localhost:7025");
-            });
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri("http://localhost");
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => factory.Server.CreateHandler());
 
             return services;
         }

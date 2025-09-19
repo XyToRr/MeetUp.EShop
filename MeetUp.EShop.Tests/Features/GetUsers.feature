@@ -7,6 +7,7 @@ Scenario: GetAllUsers
 	When try to get all users
 	Then all users should be returned
 
+@emptyDB
 Scenario: GetAllUsersEmpty
 	When try to get all users
 	Then no users should be returned

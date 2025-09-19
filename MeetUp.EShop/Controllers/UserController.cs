@@ -87,7 +87,7 @@ namespace MeetUp.EShop.Api.Controllers
         public async Task<IResult> GetUser([FromBody] Guid id)
         {
           
-            var user = _hybridCacheService.GetCacheAsync($"{CacheKeys.SingleUser}{id}",
+            var user = await _hybridCacheService.GetCacheAsync($"{CacheKeys.SingleUser}{id}",
                 async () => await Task.FromResult(_userService.Get(id)));
             
             if (user == null)
